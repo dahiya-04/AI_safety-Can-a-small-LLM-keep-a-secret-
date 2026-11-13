@@ -20,6 +20,7 @@ hf_cache/
 results/*.csv
 results/*.json
 results/*.jsonl
+results/*/
 outputs/
 logs/
 

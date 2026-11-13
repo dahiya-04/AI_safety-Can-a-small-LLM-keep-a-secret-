@@ -11,6 +11,7 @@ from pathlib import Path
 import pandas as pd
 from datasets import load_dataset
 
+from ..config import DEFAULT_MODEL
 from ..generation import generate_text
 from ..model_loader import load_model
 
@@ -26,7 +27,7 @@ def load_jailbreakbench() -> pd.DataFrame:
 
 def generate_controlled_responses(
     prompts: list[str],
-    model_name: str = "Qwen/Qwen3-1.7B",
+    model_name: str = DEFAULT_MODEL,
 ) -> pd.DataFrame:
     """Generate responses for caller-supplied, authorized test prompts."""
     bundle = load_model(model_name)

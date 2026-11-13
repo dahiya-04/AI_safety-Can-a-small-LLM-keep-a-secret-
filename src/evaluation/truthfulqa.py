@@ -6,8 +6,10 @@ from pathlib import Path
 import pandas as pd
 from datasets import load_dataset
 
+from ..config import DEFAULT_MODEL, DEFAULT_SEED, RESULTS_DIR
 from ..generation import generate_text
 from ..model_loader import load_model
+from ..utils import set_seed
 
 
 def load_questions(num_samples: int = 30, seed: int = 42) -> pd.DataFrame:
@@ -21,9 +23,10 @@ def evaluate(
     model_name: str,
     num_samples: int,
     output_path: str,
-    seed: int = 42,
+    seed: int = DEFAULT_SEED,
 ) -> pd.DataFrame:
     """Generate answers for a TruthfulQA sample and save them."""
+    set_seed(seed)
     questions = load_questions(num_samples=num_samples, seed=seed)
     bundle = load_model(model_name)
 
@@ -51,13 +54,13 @@ def evaluate(
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", default="Qwen/Qwen3-1.7B")
+    parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--num-samples", type=int, default=30)
     parser.add_argument(
         "--output",
-        default="results/truthfulqa_results.csv",
+        default=str(RESULTS_DIR / "truthfulqa_results.csv"),
     )
-    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
     args = parser.parse_args()
 
     results = evaluate(

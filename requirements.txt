@@ -1,6 +1,13 @@
-torch
-transformers>=4.51.0
-accelerate
-datasets
-pandas
-numpy
+# Install CPU torch locally with:
+#   pip install torch==2.15.0 --index-url https://download.pytorch.org/whl/cpu
+# On a GPU machine plain `pip install -r requirements.txt` gets the CUDA build.
+torch==2.15.0
+transformers==5.22.2
+accelerate==1.15.0
+datasets==5.2.0
+huggingface_hub==2.4.0
+pandas==3.1.1
+numpy==2.5.4
+matplotlib==3.11.2
+python-dotenv==1.2.4
+pytest==9.2.0

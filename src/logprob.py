@@ -1,8 +1,11 @@
 """Token-level likelihood utilities."""
 
+import argparse
+
 import torch
 import torch.nn.functional as F
 
+from .config import DEFAULT_MODEL
 from .model_loader import load_model
 
 
@@ -57,8 +60,12 @@ def rank_options(model, tokenizer, question: str, options: list[str]):
     return sorted(scored, key=lambda item: item[1], reverse=True)
 
 
-if __name__ == "__main__":
-    bundle = load_model()
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Rank answer options by log probability.")
+    parser.add_argument("--model", default=DEFAULT_MODEL)
+    args = parser.parse_args()
+
+    bundle = load_model(args.model)
 
     question = "What is the capital of France?"
     options = ["Berlin", "Madrid", "Paris", "Rome"]
@@ -70,3 +77,7 @@ if __name__ == "__main__":
         options,
     ):
         print(f"{option}: {score:.4f}")
+
+
+if __name__ == "__main__":
+    main()
