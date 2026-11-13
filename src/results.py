@@ -11,10 +11,13 @@ from typing import Any
 from .config import RESULTS_DIR
 
 
-def make_run_dir(experiment: str, base: Path = RESULTS_DIR) -> Path:
-    """Create and return a fresh, timestamped directory for one run."""
+def make_run_dir(experiment: str, base: Path = RESULTS_DIR, name: str | None = None) -> Path:
+    """Create and return a fresh directory for one run.
+
+    The folder is named by timestamp, or ``<timestamp>_<name>`` if given.
+    """
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    run_dir = Path(base) / experiment / stamp
+    run_dir = Path(base) / experiment / (f"{stamp}_{name}" if name else stamp)
     run_dir.mkdir(parents=True, exist_ok=True)
     return run_dir
 

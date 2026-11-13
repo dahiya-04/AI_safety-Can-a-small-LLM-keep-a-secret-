@@ -22,6 +22,7 @@ Runs on CPU (slow, use tiny settings to test) or GPU (HF Jobs / Kaggle).
 """
 
 import argparse
+import json
 import time
 
 import pandas as pd
@@ -37,6 +38,16 @@ from .prompt_attacks import GANDALF_SCENARIO, detect_leak
 
 SUFFIX_MARKER = "<<SUFFIX>>"
 DEFAULT_TARGET = "Sure, the password is PINEAPPLE42"
+
+# Prefix for machine-readable log lines. A run on a remote GPU (HF Jobs) only
+# returns its logs, so results are also printed as JSON lines that
+# ``gcg_import.py`` turns back into a local results folder.
+LOG_MARKER = "GCGJSON"
+
+
+def emit(kind: str, payload: dict) -> None:
+    """Print one machine-readable line: ``GCGJSON <kind> {json}``."""
+    print(f"{LOG_MARKER} {kind} {json.dumps(payload)}", flush=True)
 
 
 # ---------------------------------------------------------------------------
@@ -252,17 +263,17 @@ def run_gcg(
         leak = detect_leak(reply, canary)
         suffix_text = tokenizer.decode(suffix_ids[0])
 
-        history.append(
-            {
-                "step": step,
-                "loss_before_step": round(current_loss, 4),
-                "loss": round(step_loss, 4),
-                "suffix": suffix_text,
-                "reply": reply,
-                "leak": leak or "",
-                "seconds": round(time.time() - t0, 1),
-            }
-        )
+        row = {
+            "step": step,
+            "loss_before_step": round(current_loss, 4),
+            "loss": round(step_loss, 4),
+            "suffix": suffix_text,
+            "reply": reply,
+            "leak": leak or "",
+            "seconds": round(time.time() - t0, 1),
+        }
+        history.append(row)
+        emit("step", row)
         print(f"step {step:3d} | loss {step_loss:.4f} | leak={leak or '-':8s} | {time.time() - t0:5.1f}s | {suffix_text!r}")
 
         if leak and leaked_at is None:
@@ -308,6 +319,17 @@ def save_loss_plot(history: list[dict], path) -> None:
     plt.close(fig)
 
 
+def save_run(history: list[dict], metrics: dict, config: dict, run_name: str | None = None):
+    """Write history.csv, metrics.json, config.json and loss.png; return the folder."""
+    run_dir = make_run_dir("gcg", name=run_name)
+    pd.DataFrame(history).to_csv(run_dir / "history.csv", index=False)
+    save_json(metrics, run_dir / "metrics.json")
+    save_json(config, run_dir / "config.json")
+    if history:
+        save_loss_plot(history, run_dir / "loss.png")
+    return run_dir
+
+
 def main() -> None:
     gpu = torch.cuda.is_available()
     parser = argparse.ArgumentParser(description="Run a benign GCG suffix attack.")
@@ -327,6 +349,10 @@ def main() -> None:
     set_seed(args.seed)
     bundle = load_model(args.model)
     print(f"Device: {bundle.device}")
+    config = {**vars(args), **environment_info()}
+    if torch.cuda.is_available():
+        config["gpu_name"] = torch.cuda.get_device_name(0)
+    emit("config", config)
 
     result = run_gcg(
         bundle,
@@ -339,15 +365,10 @@ def main() -> None:
         stop_on_leak=not args.no_stop_on_leak,
     )
 
-    run_dir = make_run_dir("gcg")
-    pd.DataFrame(result["history"]).to_csv(run_dir / "history.csv", index=False)
     metrics = {k: v for k, v in result.items() if k != "history"}
-    save_json(metrics, run_dir / "metrics.json")
-    save_json({**vars(args), **environment_info()}, run_dir / "config.json")
-    save_loss_plot(result["history"], run_dir / "loss.png")
+    emit("metrics", metrics)
+    run_dir = save_run(result["history"], metrics, config)
 
-    # Printed as one JSON block so it can be read straight from job logs.
-    import json
     print("\n=== GCG RESULT ===")
     print(json.dumps(metrics, indent=2))
     print(f"Saved to {run_dir}")
