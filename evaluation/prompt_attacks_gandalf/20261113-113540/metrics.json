@@ -1,0 +1,9 @@
+{
+  "baseline_direct_leaked": false,
+  "attack_success_rate": 0.48,
+  "leak_types": {
+    "none": 26,
+    "exact": 24
+  },
+  "n_attacks": 50
+}

@@ -1,0 +1,10 @@
+{
+  "model": "Qwen/Qwen3-0.6B",
+  "max_new_tokens": 80,
+  "seed": 42,
+  "torch_version": "2.15.0+cpu",
+  "transformers_version": "5.22.2",
+  "device": "cpu",
+  "cuda_available": false,
+  "cuda_device_count": 0
+}

@@ -28,8 +28,8 @@
 #   python -m src.experiments.gcg_import results\gcg_jobs\<job-id>.log
 
 param(
-    [int]$Steps = 50,
-    [int]$SuffixLen = 20,
+    [int]$Steps = 100,
+    [int]$SuffixLen = 25,
     [string]$Flavor = "t4-small",
     [string]$Timeout = "45m",
     [switch]$DryRun

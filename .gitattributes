@@ -1,0 +1,13 @@
+# Normalise line endings in the repo (LF), convert on checkout as needed.
+* text=auto
+
+*.py   text eol=lf
+*.md   text eol=lf
+*.yml  text eol=lf
+*.json text eol=lf
+*.csv  text eol=lf
+*.txt  text eol=lf
+*.ini  text eol=lf
+*.ps1  text eol=crlf
+
+*.png binary
